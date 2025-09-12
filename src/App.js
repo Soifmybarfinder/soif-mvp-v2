@@ -59,7 +59,6 @@ function App() {
         <p>✅ Design SOIF authentique</p>
         <p>✅ Déployé sur Vercel</p>
         <p>✅ Prêt pour Station F</p>
-        <p>📊 Analytics à ajouter plus tard</p>
       </div>
 
       <button 
