@@ -1,0 +1,574 @@
+import React, { useState, useEffect } from 'react';
+import { Search, MapPin, Users, Filter, Star, Clock, Wifi, Coffee, Music, Calendar, UserPlus, MessageCircle, Bell, Heart, Settings, Home, User, ChevronDown, ChevronUp, X, Navigation } from 'lucide-react';
+
+const SOIFApp = () => {
+  const [currentPage, setCurrentPage] = useState('splash');
+  const [selectedBar, setSelectedBar] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({});
+  const [userLocation, setUserLocation] = useState('Montpellier');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [friendsNearby, setFriendsNearby] = useState([]);
+  const [showLoginForm, setShowLoginForm] = useState(false);
+
+  // Sample data based on your pitch deck
+  const bars = [
+    {
+      id: 1,
+      name: "Le Brewster Café",
+      address: "12 Rue de l'Université, Montpellier",
+      rating: 4.5,
+      distance: "0.3 km",
+      tags: ["startup-friendly", "wifi", "terrasse", "afterwork", "calme", "décontracté"],
+      price: "€€",
+      hours: "Ouvert jusqu'à 23h",
+      description: "Bar moderne avec excellente connexion WiFi, parfait pour les entrepreneurs",
+      friends: ["Sophie", "Marc"],
+      currentGuests: 8,
+      atmospheres: ["Décontracté", "Professionnel"],
+      specialties: ["Craft beer", "Cocktails"],
+      events: ["Networking Thursday 19h"],
+      quartier: "Écusson",
+      musique: "Lounge",
+      clientele: "25-35 ans",
+      ensoleillement: "Après-midi"
+    },
+    {
+      id: 2,
+      name: "Station Cocktails",
+      address: "25 Avenue de la Gare, Montpellier",
+      rating: 4.7,
+      distance: "0.5 km",
+      tags: ["cocktails", "ambiance", "innovant", "entrepreneur", "tendance", "animé"],
+      price: "€€€",
+      hours: "Ouvert jusqu'à 2h",
+      description: "Le QG des entrepreneurs montpelliérains",
+      friends: ["Julie", "Thomas", "Alex"],
+      currentGuests: 15,
+      atmospheres: ["Tendance", "Networking"],
+      specialties: ["Cocktails signature", "Tapas"],
+      events: ["Pitch Night Mardi 20h"],
+      quartier: "Gare",
+      musique: "Électro",
+      clientele: "Entrepreneurs",
+      ensoleillement: "Sunset"
+    },
+    {
+      id: 3,
+      name: "Le Code Bar",
+      address: "8 Rue des Étudiants, Montpellier",
+      rating: 4.3,
+      distance: "0.7 km",
+      tags: ["tech", "étudiants", "wifi", "pas-cher", "jeux", "geek"],
+      price: "€",
+      hours: "Ouvert jusqu'à 1h",
+      description: "Bar thématique tech avec espaces de coworking",
+      friends: ["Emma"],
+      currentGuests: 12,
+      atmospheres: ["Geek", "Décontracté"],
+      specialties: ["Bières", "Gaming"],
+      events: ["Hackathon prep Mercredi"],
+      quartier: "Beaux-Arts",
+      musique: "Rock",
+      clientele: "Étudiants",
+      ensoleillement: "Jamais"
+    }
+  ];
+
+  // Filtres basés sur votre documentation
+  const filterCategories = {
+    "Caractéristiques": ["Terrasse", "WiFi", "Happy Hour", "Ouvert maintenant", "Jeux de société", "Pétanque", "Billard", "Écrans TV", "Climatisé", "Chauffage extérieur", "Parking"],
+    "Quartiers": ["Écusson", "Antigone", "Comédie", "Gare", "Beaux-Arts", "Port Marianne", "Rives du Lez", "Hôpitaux-Facultés", "Peyrou", "Plage"],
+    "Prix": ["Pas cher", "Modéré", "Luxe"],
+    "Type de bar": ["Bar à bières", "Pub Irlandais", "Bar à vins", "Bar à cocktails", "Pub", "Brasserie", "Cave à vin", "Guinguette", "Speakeasy", "Sports bar", "Rooftop", "Lounge", "Bar de plage"],
+    "Boissons": ["Cocktails", "Vins", "Bières", "Craft", "Whiskies", "Rhums", "Gins", "Champagne", "Prosecco", "Sans alcool", "Mocktails"],
+    "Niveau sonore": ["Calme", "Animé", "Bruyant", "Très bruyant"],
+    "Nourriture": ["Planches", "Tapas", "Végan", "Végétarien", "Sans gluten", "Burgers", "Carte complète", "Menus", "Brunch"],
+    "Clientèle": ["18-25 ans", "25-35 ans", "35-50 ans", "50+ ans", "Tous âges", "Étudiants", "Business"],
+    "Ambiance": ["Cosy", "Tendance", "Afterwork", "Romantique", "Sport", "Festif", "Calme", "Animé", "Intime"],
+    "Événements": ["Karaoké", "Scène ouverte", "Stand-up", "DJ Set", "Concerts", "Quiz", "Retransmissions sport", "Dégustations", "Cours de cocktails"]
+  };
+
+  const friends = [
+    { id: 1, name: "Sophie Martin", status: "En ligne", location: "Le Brewster Café", avatar: "👩", activity: "Working session", type: "Entrepreneur" },
+    { id: 2, name: "Marc Dubois", status: "En ligne", location: "Station Cocktails", avatar: "👨", activity: "Networking", type: "Développeur" },
+    { id: 3, name: "Julie Chen", status: "En ligne", location: "Station Cocktails", avatar: "👩", activity: "After work", type: "Designer" },
+    { id: 4, name: "Thomas Rey", status: "Absent", location: null, avatar: "👨", activity: null, type: "Product Manager" },
+    { id: 5, name: "Alex Johnson", status: "En ligne", location: "Station Cocktails", avatar: "🧔", activity: "Meeting", type: "Investisseur" }
+  ];
+
+  const nearbyEvents = [
+    { id: 1, title: "Startup Apéro", location: "Le Brewster Café", time: "19h00", attendees: 12, type: "Networking" },
+    { id: 2, title: "Pitch Night", location: "Station Cocktails", time: "20h00", attendees: 25, type: "Pitch" },
+    { id: 3, title: "Tech Meetup", location: "Le Code Bar", time: "18h30", attendees: 8, type: "Tech" }
+  ];
+
+  useEffect(() => {
+    setFriendsNearby(friends.filter(f => f.status === "En ligne" && f.location));
+    
+    // Auto-transition from splash to home after 3 seconds
+    if (currentPage === 'splash') {
+      const timer = setTimeout(() => {
+        setCurrentPage('home');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentPage]);
+
+  const handleFilterToggle = (category, item) => {
+    const key = `${category}-${item}`;
+    setActiveFilters(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters({});
+  };
+
+  const getFilteredBars = () => {
+    let filtered = bars;
+    
+    if (searchQuery) {
+      filtered = filtered.filter(bar => 
+        bar.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        bar.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        bar.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply active filters
+    Object.keys(activeFilters).forEach(filterKey => {
+      if (activeFilters[filterKey]) {
+        const [category, item] = filterKey.split('-');
+        filtered = filtered.filter(bar => {
+          if (category === "Prix") {
+            if (item === "Pas cher") return bar.price === "€";
+            if (item === "Modéré") return bar.price === "€€";
+            if (item === "Luxe") return bar.price === "€€€";
+          }
+          if (category === "Quartiers") return bar.quartier === item;
+          if (category === "Clientèle") return bar.clientele === item;
+          return bar.tags.some(tag => tag.toLowerCase().includes(item.toLowerCase()));
+        });
+      }
+    });
+
+    return filtered;
+  };
+
+  const SplashPage = () => (
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 flex flex-col items-center justify-center text-white relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-white rounded-full"></div>
+        <div className="absolute bottom-32 right-16 w-24 h-24 bg-white rounded-full"></div>
+        <div className="absolute top-1/2 right-10 w-16 h-16 bg-white rounded-full"></div>
+      </div>
+      
+      {/* Logo SOIF avec verre de vin */}
+      <div className="text-center z-10">
+        {/* Wine glass icon */}
+        <div className="mb-8 animate-pulse">
+          <div className="mx-auto w-24 h-24 relative">
+            {/* Wine glass shape */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg width="80" height="80" viewBox="0 0 80 80" className="text-white">
+                {/* Glass bowl */}
+                <path d="M20 10 C20 25, 30 35, 40 35 C50 35, 60 25, 60 10 Z" fill="currentColor" opacity="0.9"/>
+                {/* Stem */}
+                <rect x="38" y="35" width="4" height="25" fill="currentColor"/>
+                {/* Base */}
+                <rect x="30" y="60" width="20" height="4" rx="2" fill="currentColor"/>
+                {/* Wine/flower in glass */}
+                <circle cx="40" cy="22" r="3" fill="white" opacity="0.8"/>
+                <path d="M37 20 L43 20 M38 22 L42 22 M39 24 L41 24" stroke="white" strokeWidth="1" opacity="0.6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        {/* SOIF Brand */}
+        <div className="mb-8">
+          <h1 className="text-6xl font-bold mb-2 tracking-wider" style={{fontFamily: 'Georgia, serif'}}>
+            SOIF
+          </h1>
+          <div className="text-xl tracking-[0.3em] font-light opacity-90">
+            M Y  B A R F I N D E R
+          </div>
+        </div>
+        
+        {/* Tagline */}
+        <p className="text-lg opacity-80 mb-12 px-8 leading-relaxed">
+          L'appli qui t'aide à trouver ton bar idéal !
+        </p>
+        
+        {/* Station F Badge */}
+        <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-6 py-2 mb-8">
+          <span className="text-sm font-medium">🚀 Station F Fighter Edition</span>
+        </div>
+        
+        {/* Entry buttons */}
+        <div className="space-y-4 w-64">
+          <button 
+            onClick={() => setCurrentPage('home')}
+            className="w-full bg-white text-purple-700 py-4 rounded-full font-semibold text-lg hover:bg-opacity-90 transition-all transform hover:scale-105"
+          >
+            Entrer
+          </button>
+          <button 
+            onClick={() => setShowLoginForm(true)}
+            className="w-full border-2 border-white text-white py-3 rounded-full font-medium hover:bg-white hover:text-purple-700 transition-all"
+          >
+            Se connecter
+          </button>
+        </div>
+        
+        {/* Version info */}
+        <div className="mt-8 text-xs opacity-60">
+          Version MVP • Station F Round 2
+        </div>
+      </div>
+      
+      {/* Loading indicator */}
+      <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2">
+        <div className="flex space-x-2">
+          <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+          <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+          <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const LoginModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg w-full max-w-sm p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-purple-800">Connexion</h2>
+          <button onClick={() => setShowLoginForm(false)} className="text-gray-400">
+            <X size={24} />
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+          <input
+            type="password"
+            placeholder="Mot de passe"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+          
+          <button 
+            onClick={() => {
+              setShowLoginForm(false);
+              setCurrentPage('home');
+            }}
+            className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700"
+          >
+            Se connecter
+          </button>
+          
+          <div className="text-center">
+            <button className="text-purple-600 text-sm">Mot de passe oublié ?</button>
+          </div>
+          
+          <div className="border-t pt-4">
+            <button className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-medium">
+              Créer un compte
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const BottomNav = () => (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 z-50">
+      {[
+        { icon: Home, label: 'Accueil', page: 'home' },
+        { icon: Search, label: 'Recherche', page: 'search' },
+        { icon: Users, label: 'Social', page: 'social' },
+        { icon: User, label: 'Profil', page: 'profile' }
+      ].map(({ icon: Icon, label, page }) => (
+        <button
+          key={page}
+          onClick={() => setCurrentPage(page)}
+          className={`flex flex-col items-center p-2 ${currentPage === page ? 'text-purple-600' : 'text-gray-500'}`}
+        >
+          <Icon size={24} />
+          <span className="text-xs mt-1">{label}</span>
+        </button>
+      ))}
+    </div>
+  );
+
+  const HomePage = () => (
+    <div className="p-4 pb-20 bg-gray-50 min-h-screen">
+      {/* Header avec logo SOIF */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-800 rounded-lg flex items-center justify-center">
+            <div className="text-white text-lg">🍷</div>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold" style={{color: '#6B46C1'}}>SOIF</h1>
+            <p className="text-gray-600 text-sm">My BarFinder</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Bell size={24} className="text-gray-600" />
+          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+            <span className="text-purple-600 font-semibold">S</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Station F Badge */}
+      <div className="bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg p-4 mb-6 text-white">
+        <div className="flex items-center space-x-2 mb-2">
+          <span className="text-xl">🚀</span>
+          <h2 className="text-lg font-semibold">Station F Fighter Edition</h2>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold">{friendsNearby.length}</div>
+            <div className="text-sm opacity-90">Entrepreneurs connectés</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold">{bars.length}</div>
+            <div className="text-sm opacity-90">Bars startup-friendly</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold">{nearbyEvents.length}</div>
+            <div className="text-sm opacity-90">Événements networking</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <button 
+          onClick={() => setCurrentPage('search')}
+          className="bg-white border border-purple-200 rounded-lg p-4 flex items-center space-x-3 shadow-sm"
+        >
+          <Search className="text-purple-600" size={24} />
+          <div className="text-left">
+            <div className="font-semibold text-purple-800">Trouver un bar</div>
+            <div className="text-sm text-gray-600">140+ filtres</div>
+          </div>
+        </button>
+        <button 
+          onClick={() => setCurrentPage('social')}
+          className="bg-white border border-blue-200 rounded-lg p-4 flex items-center space-x-3 shadow-sm"
+        >
+          <Users className="text-blue-600" size={24} />
+          <div className="text-left">
+            <div className="font-semibold text-blue-800">Réseau</div>
+            <div className="text-sm text-gray-600">{friendsNearby.length} en ligne</div>
+          </div>
+        </button>
+      </div>
+
+      {/* Friends Activity */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-3 flex items-center">
+          <span className="mr-2">🌟</span>
+          Activité de votre réseau entrepreneur
+        </h3>
+        <div className="space-y-3">
+          {friendsNearby.slice(0, 3).map(friend => (
+            <div key={friend.id} className="flex items-center space-x-3 bg-white rounded-lg p-3 shadow-sm">
+              <div className="text-2xl">{friend.avatar}</div>
+              <div className="flex-1">
+                <div className="font-medium">{friend.name}</div>
+                <div className="text-sm text-gray-600">📍 {friend.location}</div>
+                <div className="text-sm text-purple-600">{friend.activity} • {friend.type}</div>
+              </div>
+              <button className="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm">
+                Rejoindre
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tonight's Events */}
+      <div>
+        <h3 className="text-lg font-semibold mb-3 flex items-center">
+          <span className="mr-2">🎉</span>
+          Événements entrepreneuriaux ce soir
+        </h3>
+        <div className="space-y-3">
+          {nearbyEvents.map(event => (
+            <div key={event.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-semibold flex items-center">
+                    {event.title}
+                    <span className="ml-2 bg-purple-100 text-purple-600 px-2 py-1 rounded text-xs">
+                      {event.type}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600">📍 {event.location}</div>
+                  <div className="text-sm text-gray-600">🕒 {event.time}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-purple-600">{event.attendees} participants</div>
+                  <button className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm mt-1">
+                    Participer
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const SearchPage = () => (
+    <div className="p-4 pb-20 bg-gray-50 min-h-screen">
+      {/* Search Header */}
+      <div className="mb-4">
+        <div className="flex items-center space-x-2 mb-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Rechercher un bar parfait..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+            />
+          </div>
+          <button 
+            onClick={() => setShowFilters(!showFilters)}
+            className={`p-3 border rounded-lg ${showFilters ? 'bg-purple-600 text-white' : 'border-gray-300 bg-white'}`}
+          >
+            <Filter size={20} />
+          </button>
+        </div>
+        
+        {/* Active Filters */}
+        {Object.keys(activeFilters).filter(key => activeFilters[key]).length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {Object.keys(activeFilters).filter(key => activeFilters[key]).map(filterKey => {
+              const [category, item] = filterKey.split('-');
+              return (
+                <span key={filterKey} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center">
+                  {item}
+                  <X 
+                    size={14} 
+                    className="ml-1 cursor-pointer"
+                    onClick={() => handleFilterToggle(category, item)}
+                  />
+                </span>
+              );
+            })}
+            <button
+              onClick={clearAllFilters}
+              className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm"
+            >
+              Effacer tout
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Filters Panel */}
+      {showFilters && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 max-h-96 overflow-y-auto shadow-sm">
+          <h3 className="font-semibold mb-3">🎯 Filtres ultra-personnalisés</h3>
+          {Object.entries(filterCategories).map(([category, items]) => (
+            <div key={category} className="mb-4">
+              <h4 className="font-medium text-gray-700 mb-2">{category}</h4>
+              <div className="flex flex-wrap gap-2">
+                {items.map(item => (
+                  <button
+                    key={item}
+                    onClick={() => handleFilterToggle(category, item)}
+                    className={`px-3 py-1 rounded-full text-sm border transition-colors ${
+                      activeFilters[`${category}-${item}`]
+                        ? 'bg-purple-600 text-white border-purple-600'
+                        : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Results */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold">{getFilteredBars().length} bars trouvés</h3>
+          <span className="text-sm text-gray-600 flex items-center">
+            <MapPin size={16} className="mr-1" />
+            {userLocation}
+          </span>
+        </div>
+        
+        {getFilteredBars().map(bar => (
+          <div key={bar.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1">
+                <h4 className="font-semibold text-lg">{bar.name}</h4>
+                <p className="text-gray-600 text-sm">{bar.address}</p>
+                <div className="flex items-center space-x-4 mt-2 text-sm">
+                  <span className="flex items-center">
+                    <Star className="text-yellow-500 mr-1" size={16} />
+                    {bar.rating}
+                  </span>
+                  <span className="flex items-center">
+                    <MapPin className="text-gray-500 mr-1" size={16} />
+                    {bar.distance}
+                  </span>
+                  <span className="text-purple-600 font-medium">{bar.price}</span>
+                  <span className="flex items-center text-gray-500">
+                    <Clock className="mr-1" size={16} />
+                    {bar.hours}
+                  </span>
+                </div>
+              </div>
+              <button className="text-gray-400 hover:text-red-500">
+                <Heart size={24} />
+              </button>
+            </div>
+            
+            {/* Friends at this bar */}
+            {bar.friends && bar.friends.length > 0 && (
+              <div className="mb-3 p-2 bg-blue-50 rounded-lg">
+                <div className="text-sm text-blue-800">
+                  👥 {bar.friends.join(', ')} {bar.friends.length === 1 ? 'est' : 'sont'} ici
+                  <span className="ml-2 text-xs bg-blue-200 px-2 py-1 rounded">
+                    {bar.currentGuests} personnes actuellement
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {bar.tags.slice(0, 5).map(tag => (
+                <span key={tag} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                  #{tag}
+                </span>
+              ))}
+              {bar.tags.length > 5 && (
+                <span className="text-gray-500 text-xs">+{bar.tags.length - 5} tags</span>
+              )}
+            </div>
+            
+            {/* Events */}
+            {bar.events && bar.events.length > 0 && (
+              <div className="mb-3">
